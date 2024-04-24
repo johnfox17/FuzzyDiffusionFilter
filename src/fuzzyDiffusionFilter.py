@@ -47,6 +47,12 @@ class fuzzyDiffusionFilter:
         self.localSmoothness = localSmoothness
         self.generalAverage = generalAverage
 
+    def thresholdLocalSmoothness(self):
+        localSmoothness = np.array(self.localSmoothness)
+        localSmoothness[localSmoothness<0.35] = 0
+        localSmoothness[localSmoothness != 0] = 1
+        self.localSmoothness = list(localSmoothness)
+
     def calculateLocalGradients(self):
         gradient = []
         for currentPixel in range(self.Nx*self.Ny):
@@ -61,16 +67,20 @@ class fuzzyDiffusionFilter:
 
     def timeIntegrate(self):
         timeSteps = int(self.finalTime/self.dt)
+        timeSteps = 1000
         for iTimeStep in range(timeSteps+1):
             print(iTimeStep)
             noisyImage = self.image
             self.createSimilarityMatrices()
             self.calculateLocalAndGeneralSmoothness()
+            self.thresholdLocalSmoothness()
             self.calculateLocalGradients()
             noisyImage = noisyImage + list(np.array(self.gradient) * self.lambd*self.dt)
             self.image = noisyImage
-            if iTimeStep%20 == 0:
-                np.savetxt('..\\data\\denoisedImages'+str(iTimeStep)+'.csv',  noisyImage, delimiter=",")
+            if iTimeStep%10 == 0:
+                #np.savetxt('..\\data\\localSmoothness'+str(iTimeStep)+'.csv',  self.localSmoothness, delimiter=",")
+                np.savetxt('../data/denoisedImages'+str(iTimeStep)+'.csv',  self.image, delimiter=",")
+            #a = input('').split(" ")[0]
         self.denoisedImage = noisyImage
 
     def solve(self):
