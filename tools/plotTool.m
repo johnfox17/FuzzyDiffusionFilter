@@ -1,11 +1,19 @@
 clear all;
-close all;
+% close all;
 
 addpath('../data/')
+lena = imread('Lena.png');
+lena = rgb2gray(lena);
 
-denoisedImages0 = table2array(readtable("denoisedImages0.csv"));
-denoisedImages1 = table2array(readtable("denoisedImages230.csv"));
-% localSmoothness10 = table2array(readtable("localSmoothness10.csv"));
+figure; imagesc(lena)
+colormap gray
+
+image = table2array(readtable("imagePadded.csv"));
+
+
+% denoisedImages0 = table2array(readtable("denoisedImages0.csv"));
+%denoisedImages1 = table2array(readtable("denoisedImages230.csv"));
+localSmoothness0 = table2array(readtable("localSmoothness0.csv"));
 % localSmoothness11 = table2array(readtable("localSmoothness11.csv"));
 % localSmoothness12 = table2array(readtable("localSmoothness90.csv"));
 

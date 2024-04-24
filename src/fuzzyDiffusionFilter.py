@@ -4,7 +4,7 @@ from sklearn.neighbors import KDTree
 
 class fuzzyDiffusionFilter:
     def __init__(self, image):
-        self.image = image.flatten().astype(int)
+        self.image = image
         self.l1 = constants.L1
         self.l2 = constants.L2
         self.Nx = constants.NX
@@ -17,6 +17,8 @@ class fuzzyDiffusionFilter:
         self.finalTime = constants.FINALTIME
         self.dt = constants.DELTAT
         self.lambd = constants.LAMBDA
+        self.GxMask = constants.GXMASK
+        self.GyMask = constants.GYMASK
 
     def createPDDOKernelMesh(self):
         indexing = 'xy'
@@ -32,6 +34,19 @@ class fuzzyDiffusionFilter:
         self.neighboringPixels = tree.query_radius(self.coordinateMesh, r = self.dx*self.horizon)
 
     
+    def addBoundary(self):
+        self.image = np.pad(self.image,int(self.horizon),mode='symmetric')
+        self.Nx = self.Nx + 2*int(self.horizon)
+        self.Ny = self.Ny + 2*int(self.horizon)
+
+    def findMembership(self):
+        for iCol in range(1,self.Nx-1):
+            for iRow in range(1,self.Ny-1):
+                Gx = np.multiply(self.GxMask,self.image[iRow-int(self.horizon):iRow+int(self.horizon)+1,iCol-int(self.horizon):iCol+int(self.horizon)+1])
+                Gy = np.multiply(self.GyMask,self.image[iRow-int(self.horizon):iRow+int(self.horizon)+1,iCol-int(self.horizon):iCol+int(self.horizon)+1])
+                a = input('').split(" ")[0]
+
+
     def createSimilarityMatrices(self):
         similarityMatrices = []
         for currentPixel in range(self.Nx*self.Ny):
@@ -53,7 +68,7 @@ class fuzzyDiffusionFilter:
         localSmoothness[localSmoothness != 0] = 1
         self.localSmoothness = list(localSmoothness)
 
-    def calculateLocalGradients(self):
+    '''def calculateLocalGradients(self):
         gradient = []
         for currentPixel in range(self.Nx*self.Ny):
             currentPixelGradients = []
@@ -64,23 +79,27 @@ class fuzzyDiffusionFilter:
                     currentPixelGradients.append(self.image[self.neighboringPixels[currentPixel][iNeighbor]])
             gradient.append(np.dot(similarity,currentPixelGradients))
         self.gradient = gradient
-
+    '''
     def timeIntegrate(self):
         timeSteps = int(self.finalTime/self.dt)
         timeSteps = 1000
         for iTimeStep in range(timeSteps+1):
             print(iTimeStep)
             noisyImage = self.image
+            self.addBoundary()
+            self.findMembership()
+            np.savetxt('../data/imagePadded.csv',  self.image, delimiter=",")
+            a = input('').split(" ")[0]
             self.createSimilarityMatrices()
             self.calculateLocalAndGeneralSmoothness()
             self.thresholdLocalSmoothness()
-            self.calculateLocalGradients()
-            noisyImage = noisyImage + list(np.array(self.gradient) * self.lambd*self.dt)
-            self.image = noisyImage
-            if iTimeStep%10 == 0:
+            #self.calculateLocalGradients()
+            #noisyImage = noisyImage + list(np.array(self.gradient) * self.lambd*self.dt)
+            #self.image = noisyImage
+            #if iTimeStep%10 == 0:
                 #np.savetxt('..\\data\\localSmoothness'+str(iTimeStep)+'.csv',  self.localSmoothness, delimiter=",")
-                np.savetxt('../data/denoisedImages'+str(iTimeStep)+'.csv',  self.image, delimiter=",")
-            #a = input('').split(" ")[0]
+            np.savetxt('../data/localSmoothness'+str(iTimeStep)+'.csv',  self.localSmoothness, delimiter=",")
+            a = input('').split(" ")[0]
         self.denoisedImage = noisyImage
 
     def solve(self):

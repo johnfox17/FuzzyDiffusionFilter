@@ -10,9 +10,12 @@ def main():
 
     if sys.platform.startswith('linux'):
         pathToLena = \
-            '../data/noisyLena.png'
+            '../data/Lena.png'
+            #'../data/noisyLena.png'
     else:
-        pathToLena = '..\\data\\noisyLena.png'
+        pathToLena = \
+                '..\\data\\Lena.png'
+                #'..\\data\\noisyLena.png'
 
     image = cv2.imread(pathToLena)
     image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
