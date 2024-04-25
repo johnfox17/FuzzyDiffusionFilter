@@ -11,16 +11,19 @@ def main():
     if sys.platform.startswith('linux'):
         pathToLena = \
             '../data/Lena.png'
-            #'../data/noisyLena.png'
+            #'../data/noisyLena.png'i
+        pathToMembershipFunction = '../data/triangularMembershipFunction.csv'
+
     else:
         pathToLena = \
                 '..\\data\\Lena.png'
                 #'..\\data\\noisyLena.png'
+        pathToMembershipFunction = '..\\data\\triangularMembershipFunction.csv'
 
     image = cv2.imread(pathToLena)
     image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     
-    fuzzyFilter = fuzzyDiffusionFilter.fuzzyDiffusionFilter(image)
+    fuzzyFilter = fuzzyDiffusionFilter.fuzzyDiffusionFilter(image,pathToMembershipFunction)
     fuzzyFilter.solve()
 
 
