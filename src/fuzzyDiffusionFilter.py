@@ -71,7 +71,6 @@ class fuzzyDiffusionFilter:
                 Dyi = (Gy[2][2]+Gy[1][2]+Gy[0][2])-(Gy[2][0]+Gy[1][0]+Gy[0][0])
                 Dx.append(Dxi)
                 Dy.append(Dyi)
-                #a = input('').split(" ")[0]
         self.Dx = Dx
         self.Dy = Dy
 
@@ -97,18 +96,6 @@ class fuzzyDiffusionFilter:
         localSmoothness[localSmoothness != 0] = 1
         self.localSmoothness = list(localSmoothness)
 
-    '''def calculateLocalGradients(self):
-        gradient = []
-        for currentPixel in range(self.Nx*self.Ny):
-            currentPixelGradients = []
-            similarity = []
-            for iNeighbor in range(len(self.neighboringPixels[currentPixel])):
-                if iNeighbor != currentPixel:
-                    similarity.append(self.similarityMatrices[currentPixel][iNeighbor])
-                    currentPixelGradients.append(self.image[self.neighboringPixels[currentPixel][iNeighbor]])
-            gradient.append(np.dot(similarity,currentPixelGradients))
-        self.gradient = gradient
-    '''
     def timeIntegrate(self):
         timeSteps = int(self.finalTime/self.dt)
         timeSteps = 1000
@@ -126,7 +113,6 @@ class fuzzyDiffusionFilter:
             self.createSimilarityMatrices()
             self.calculateLocalAndGeneralSmoothness()
             self.thresholdLocalSmoothness()
-            #self.calculateLocalGradients()
             #noisyImage = noisyImage + list(np.array(self.gradient) * self.lambd*self.dt)
             #self.image = noisyImage
             #if iTimeStep%10 == 0:
