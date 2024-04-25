@@ -14,4 +14,6 @@ LAMBDA = 0.25
 
 GXMASK = np.array([[1,1,1],[0,0,0],[1,1,1]])
 GYMASK = np.array([[1,0,1],[1,0,1],[1,0,1]])
+
+
 #.flatten().astype(int)
