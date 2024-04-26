@@ -20,6 +20,7 @@ class fuzzyDiffusionFilter:
         self.lambd = constants.LAMBDA
         self.GxMask = constants.GXMASK
         self.GyMask = constants.GYMASK
+        self.gCenter = constants.GCENTER 
 
     def createPDDOKernelMesh(self):
         indexing = 'xy'
@@ -43,6 +44,21 @@ class fuzzyDiffusionFilter:
     def loadMembershipFunction(self):
         self.membershipFunction = np.loadtxt(self.pathToMembershipFunction, delimiter=",")
         
+    def loadGradientMembershipFunctions(self):
+        self.D_neg6 = constants.D_NEG6
+        self.D_neg5 = constants.D_NEG5
+        self.D_neg4 = constants.D_NEG4
+        self.D_neg3 = constants.D_NEG3
+        self.D_neg2 = constants.D_NEG2
+        self.D_neg1 = constants.D_NEG1
+        self.D_0 = constants.D_0
+        self.D_1 = constants.D_1
+        self.D_2 = constants.D_2
+        self.D_3 = constants.D_3
+        self.D_4 = constants.D_4
+        self.D_5 = constants.D_5
+        self.D_6 = constants.D_6
+
     def assignMembership(self):
         pixelMemberships = []
         for iCol in range(self.Nx):
@@ -60,7 +76,7 @@ class fuzzyDiffusionFilter:
             fuzzyMembershipImage.append(self.pixelMemberships[iPixel][1])
         self.fuzzyMembershipImage = np.array(fuzzyMembershipImage).reshape((self.Nx,self.Ny))
 
-    def calculateFuzzyDerivatives(self):
+    def findeFuzzyDerivativeRule(self):
         Dx = []
         Dy = []
         for iCol in range(1,self.Nx-1):
@@ -71,9 +87,37 @@ class fuzzyDiffusionFilter:
                 Dyi = (Gy[2][2]+Gy[1][2]+Gy[0][2])-(Gy[2][0]+Gy[1][0]+Gy[0][0])
                 Dx.append(Dxi)
                 Dy.append(Dyi)
-        self.Dx = Dx
-        self.Dy = Dy
+        self.Dx = np.pad(np.array(Dx).reshape((self.Nx-2, self.Ny-2)),int(self.horizon),mode='symmetric')
+        self.Dy = np.pad(np.array(Dy).reshape((self.Nx-2, self.Ny-2)),int(self.horizon),mode='symmetric')
 
+    def calculateGradient(self):
+        gX = []
+        gY = []
+        for iCol in range(1,self.Nx-1):
+            for iRow in range(1,self.Ny-1):
+                Dx = np.multiply(self.GxMask,self.Dx[iRow-int(self.horizon):iRow+int(self.horizon)+1,iCol-int(self.horizon):iCol+int(self.horizon)+1])
+                Dy = np.multiply(self.GyMask,self.Dy[iRow-int(self.horizon):iRow+int(self.horizon)+1,iCol-int(self.horizon):iCol+int(self.horizon)+1])
+                Lx = np.multiply(self.GxMask,self.image[iRow-int(self.horizon):iRow+int(self.horizon)+1,iCol-int(self.horizon):iCol+int(self.horizon)+1])
+                Ly = np.multiply(self.GyMask,self.image[iRow-int(self.horizon):iRow+int(self.horizon)+1,iCol-int(self.horizon):iCol+int(self.horizon)+1])
+
+                muPremX = self.membershipFunction[Lx[2][2]][1]*self.membershipFunction[Lx[2][1]][1]*self.membershipFunction[Lx[2][0]][1]*self.membershipFunction[Lx[0][2]][1]*self.membershipFunction[Lx[0][1]][1]*self.membershipFunction[Lx[0][0]][1]
+                muPremY = self.membershipFunction[Lx[2][2]][1]*self.membershipFunction[Lx[1][2]][1]*self.membershipFunction[Lx[0][2]][1]*self.membershipFunction[Lx[2][0]][1]*self.membershipFunction[Lx[1][0]][1]*self.membershipFunction[Lx[0][0]][1]
+                gX.append((self.gCenter[int(Dx[2][2])+6]*self.membershipFunction[Lx[2][2]][1]+\
+                        self.gCenter[int(Dx[2][1])+6]*self.membershipFunction[Lx[2][1]][1]+\
+                        self.gCenter[int(Dx[2][0])+6]*self.membershipFunction[Lx[2][0]][1]+\
+                        self.gCenter[int(Dx[0][2])+6]*self.membershipFunction[Lx[0][2]][1]+\
+                        self.gCenter[int(Dx[0][1])+6]*self.membershipFunction[Lx[0][1]][1]+\
+                        self.gCenter[int(Dx[0][0])+6]*self.membershipFunction[Lx[0][0]][1])/muPremX)
+
+                gY.append((self.gCenter[int(Dy[2][2])+6]*self.membershipFunction[Lx[2][2]][1]+\
+                        self.gCenter[int(Dy[1][2])+6]*self.membershipFunction[Lx[1][2]][1]+\
+                        self.gCenter[int(Dy[0][2])+6]*self.membershipFunction[Lx[0][2]][1]+\
+                        self.gCenter[int(Dy[2][0])+6]*self.membershipFunction[Lx[2][0]][1]+\
+                        self.gCenter[int(Dy[1][0])+6]*self.membershipFunction[Lx[1][0]][1]+\
+                        self.gCenter[int(Dy[0][0])+6]*self.membershipFunction[Lx[0][0]][1])/muPremY)
+        self.gX = gX
+        self.gY = gY
+    
 
     def createSimilarityMatrices(self):
         similarityMatrices = []
@@ -105,9 +149,11 @@ class fuzzyDiffusionFilter:
             self.addBoundary()
             self.assignMembership()
             self.createFuzzyMembershipImage()
-            self.calculateFuzzyDerivatives()
-            np.savetxt('../data/Dx.csv',  self.Dx, delimiter=",")
-            np.savetxt('../data/Dy.csv',  self.Dy, delimiter=",")
+            self.findeFuzzyDerivativeRule()
+            self.calculateGradient() 
+
+            np.savetxt('../data/gX.csv',  self.gX, delimiter=",")
+            np.savetxt('../data/gY.csv',  self.gY, delimiter=",")
             print('Here')
             a = input('').split(" ")[0]
             self.createSimilarityMatrices()
@@ -125,5 +171,6 @@ class fuzzyDiffusionFilter:
         self.createPDDOKernelMesh()
         self.findNeighboringPixels()
         self.loadMembershipFunction()
+        self.loadGradientMembershipFunctions()
         self.timeIntegrate()
         #a = input('').split(" ")[0]
