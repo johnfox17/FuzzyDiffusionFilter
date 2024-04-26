@@ -8,15 +8,15 @@ lena = rgb2gray(lena);
 figure; imagesc(lena)
 colormap gray
 
-Dx = table2array(readtable("Dx.csv"));
-figure; imagesc(reshape(Dx, [512 512]))
+Dx = table2array(readtable("gX.csv"));
+figure; imagesc(reshape(Dx, [512 512]).')
 colormap gray;
 
-Dy = table2array(readtable("Dy.csv"));
-figure; imagesc(reshape(Dy, [512 512]))
+Dy = table2array(readtable("gY.csv"));
+figure; imagesc(reshape(Dy, [512 512]).')
 colormap gray;
 
-figure; imagesc(reshape(Dx+Dy, [512 512]))
+figure; imagesc(reshape(Dx, [512 512]).'+reshape(Dy, [512 512]).')
 colormap gray;
 
 
