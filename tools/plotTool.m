@@ -8,15 +8,33 @@ lena = rgb2gray(lena);
 figure; imagesc(lena)
 colormap gray
 
-Dx = table2array(readtable("gX.csv"));
-figure; imagesc(reshape(Dx, [512 512]).')
+Dx = table2array(readtable("g.csv"));
+% idx = abs(Dx)~=0 & abs(Dx)<30;
+% Dx(idx) = 1;
+Dx = reshape(Dx, [512 512]).';
+figure; imagesc(Dx)
 colormap gray;
 
 Dy = table2array(readtable("gY.csv"));
-figure; imagesc(reshape(Dy, [512 512]).')
+% idx = abs(Dy)~=0 & abs(Dy)<15;
+% Dy(idx) = 1;
+Dy = reshape(Dy, [512 512]).';
+figure; imagesc(Dy)
 colormap gray;
 
-figure; imagesc(reshape(Dx, [512 512]).'+reshape(Dy, [512 512]).')
+
+grad = Dx+Dy;
+figure; histogram(grad(:))
+idx = abs(grad)<15;
+grad(idx) = 0;
+%idx = abs(grad)>=40;
+% grad(idx) = 1;
+
+
+
+% idx = abs(grad)~=0 & abs(grad)~=1;
+% grad(idx) = 0;
+figure; imagesc(grad)
 colormap gray;
 
 

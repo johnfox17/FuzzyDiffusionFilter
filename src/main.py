@@ -11,7 +11,7 @@ def main():
     if sys.platform.startswith('linux'):
         pathToLena = \
             '../data/Lena.png'
-            #'../data/noisyLena.png'i
+            #'../data/noisyLena.png'
         pathToMembershipFunction = '../data/triangularMembershipFunction.csv'
 
     else:
