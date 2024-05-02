@@ -65,8 +65,13 @@ class fuzzyDiffusionFilter:
             for iRow in range(self.Ny):
                 currentPixelMembership = []
                 currentPixelMembership.append(self.image[iCol,iRow])
-                currentPixelMembership.append(list(self.membershipFunction[int(self.image[iCol,iRow])])[0])
-                currentPixelMembership.append(list(self.membershipFunction[int(self.image[iCol,iRow])])[1])
+                membershipIndex = int(self.image[iCol,iRow])
+                if membershipIndex > 255:
+                    membershipIndex = 255
+                currentPixelMembership.append(list(self.membershipFunction[membershipIndex])[0])
+                currentPixelMembership.append(list(self.membershipFunction[membershipIndex])[1])
+                #print(currentPixelMembership)
+                #a = input('').split(" ")[0]
                 pixelMemberships.append(currentPixelMembership)
         self.pixelMemberships = pixelMemberships
 
@@ -95,12 +100,14 @@ class fuzzyDiffusionFilter:
         gY = []
         for iCol in range(1,self.Nx-1):
             for iRow in range(1,self.Ny-1):
-                Dx = np.multiply(self.GxMask,self.Dx[iRow-int(self.horizon):iRow+int(self.horizon)+1,iCol-int(self.horizon):iCol+int(self.horizon)+1])
-                Dy = np.multiply(self.GyMask,self.Dy[iRow-int(self.horizon):iRow+int(self.horizon)+1,iCol-int(self.horizon):iCol+int(self.horizon)+1])
-                Lx = np.multiply(self.GxMask,self.image[iRow-int(self.horizon):iRow+int(self.horizon)+1,iCol-int(self.horizon):iCol+int(self.horizon)+1])
-                Ly = np.multiply(self.GyMask,self.image[iRow-int(self.horizon):iRow+int(self.horizon)+1,iCol-int(self.horizon):iCol+int(self.horizon)+1])
+                Dx = np.multiply(self.GxMask,self.Dx[iRow-int(self.horizon):iRow+int(self.horizon)+1,iCol-int(self.horizon):iCol+int(self.horizon)+1]).astype(int)
+                Dy = np.multiply(self.GyMask,self.Dy[iRow-int(self.horizon):iRow+int(self.horizon)+1,iCol-int(self.horizon):iCol+int(self.horizon)+1]).astype(int)
+                Lx = np.multiply(self.GxMask,self.image[iRow-int(self.horizon):iRow+int(self.horizon)+1,iCol-int(self.horizon):iCol+int(self.horizon)+1]).astype(int)
+                Lx[Lx>255] = 255
+                Ly = np.multiply(self.GyMask,self.image[iRow-int(self.horizon):iRow+int(self.horizon)+1,iCol-int(self.horizon):iCol+int(self.horizon)+1]).astype(int)
+                Ly[Ly>255] = 255
 
-                muPremX = self.membershipFunction[Lx[2][2]][1]+self.membershipFunction[Lx[2][1]][1]+self.membershipFunction[Lx[2][0]][1]+self.membershipFunction[Lx[0][2]][1]+self.membershipFunction[Lx[0][1]][1]+self.membershipFunction[Lx[0][0]][1]
+                muPremX = self.membershipFunction[int(Lx[2][2])][1]+self.membershipFunction[int(Lx[2][1])][1]+self.membershipFunction[int(Lx[2][0])][1]+self.membershipFunction[int(Lx[0][2])][1]+self.membershipFunction[int(Lx[0][1])][1]+self.membershipFunction[int(Lx[0][0])][1]
                 muPremY = self.membershipFunction[Lx[2][2]][1]+self.membershipFunction[Lx[1][2]][1]+self.membershipFunction[Lx[0][2]][1]+self.membershipFunction[Lx[2][0]][1]+self.membershipFunction[Lx[1][0]][1]+self.membershipFunction[Lx[0][0]][1]
                 gX.append((self.gCenter[int(Dx[2][2])+6]*self.membershipFunction[Lx[2][2]][1]+\
                         self.gCenter[int(Dx[2][1])+6]*self.membershipFunction[Lx[2][1]][1]+\
@@ -127,29 +134,43 @@ class fuzzyDiffusionFilter:
                 similarityMatrices.append(np.exp(-np.power(np.absolute(np.multiply(self.GxMask,self.image[iRow-int(self.horizon):iRow+int(self.horizon)+1,iCol-int(self.horizon):iCol+int(self.horizon)+1])-self.image[iRow,iCol]),self.q)/self.Dn))
         similarityMatrices = np.array(similarityMatrices)
         similarityMatrices[similarityMatrices<1e-9] = 0
-        self.similarityMatrices = list(similarityMatrices)
+        self.similarityMatrices = similarityMatrices
 
-    def solveEquation(self):
+    def solveRHS(self):
         g = np.pad(self.g.reshape((self.Nx-2,self.Ny-2)) ,int(self.horizon),mode='symmetric')
-        print(np.shape(g))
-        print(np.shape(self.similarityMatrices))
-        a = input('').split(" ")[0]
+        localSmoothness = np.pad(self.localSmoothness ,int(self.horizon),mode='symmetric')
+        #iPixel = 0
+        RHS = []
+        for iCol in range(1,self.Nx-1):
+            for iRow in range(1,self.Ny-1):
+                #RHS.append(np.sum(np.multiply(self.similarityMatrices[iPixel,:,:],np.multiply(self.GxMask,g[iRow-int(self.horizon):iRow+int(self.horizon)+1,iCol-int(self.horizon):iCol+int(self.horizon)+1]))))           
+                RHS.append(np.sum(np.multiply(np.multiply(self.GxMask, localSmoothness[iRow-int(self.horizon):iRow+int(self.horizon)+1,iCol-int(self.horizon):iCol+int(self.horizon)+1]),np.multiply(self.GxMask,g[iRow-int(self.horizon):iRow+int(self.horizon)+1,iCol-int(self.horizon):iCol+int(self.horizon)+1]))))
+                #iPixel = iPixel + 1
+        self.RHS = np.transpose(np.array(RHS).reshape((self.Nx-2,self.Ny-2)))
+
     
 
     def calculateLocalAndGeneralSmoothness(self):
         localSmoothness = []
         generalAverage = []
-        for currentSimilarityMatrix in range(self.Nx*self.Ny):
+        for currentSimilarityMatrix in range((self.Nx-2)*(self.Ny-2)):
             localSmoothness.append((np.sum(self.similarityMatrices[currentSimilarityMatrix])-1)/(len(self.similarityMatrices[currentSimilarityMatrix])-1))
             generalAverage.append(np.average(self.similarityMatrices[currentSimilarityMatrix]))
-        self.localSmoothness = localSmoothness
-        self.generalAverage = generalAverage
+        self.localSmoothness = np.array(localSmoothness).reshape((self.Nx-2),(self.Ny-2))
+        self.generalAverage = np.array(generalAverage).reshape((self.Nx-2),(self.Ny-2))
 
     def thresholdLocalSmoothness(self):
         localSmoothness = np.array(self.localSmoothness)
         localSmoothness[localSmoothness<0.35] = 0
         localSmoothness[localSmoothness != 0] = 1
-        self.localSmoothness = list(localSmoothness)
+        self.localSmoothness = localSmoothness
+
+    def fixDynamicRange(self):
+        denoisedImage = self.denoisedImage.flatten()
+        denoisedImage = 255*np.divide(denoisedImage,np.max(denoisedImage))
+        self.Nx = self.Nx - 2*int(self.horizon)
+        self.Ny = self.Ny - 2*int(self.horizon)
+        self.image = denoisedImage.reshape((self.Nx, self.Ny))
 
     def timeIntegrate(self):
         timeSteps = int(self.finalTime/self.dt)
@@ -163,20 +184,20 @@ class fuzzyDiffusionFilter:
             self.findeFuzzyDerivativeRule()
             self.calculateGradient() 
             self.createSimilarityMatrices()
-            self.solveEquation()
-            np.savetxt('../data/g.csv',  self.g, delimiter=",")
-            np.savetxt('../data/gY.csv',  self.gY, delimiter=",")
-            print('Here')
-            a = input('').split(" ")[0]
-            self.createSimilarityMatrices()
             self.calculateLocalAndGeneralSmoothness()
             self.thresholdLocalSmoothness()
-            #noisyImage = noisyImage + list(np.array(self.gradient) * self.lambd*self.dt)
-            #self.image = noisyImage
+            #print(np.shape(self.localSmoothness))
+            #a = input('').split(" ")[0]
+            self.solveRHS() 
+            self.denoisedImage = noisyImage + self.dt*self.lambd*self.RHS
+            self.fixDynamicRange()
+
             #if iTimeStep%10 == 0:
-                #np.savetxt('..\\data\\localSmoothness'+str(iTimeStep)+'.csv',  self.localSmoothness, delimiter=",")
-            np.savetxt('../data/localSmoothness'+str(iTimeStep)+'.csv',  self.localSmoothness, delimiter=",")
-            a = input('').split(" ")[0]
+                #np.savetxt('..\\data\\denoisedImage'+str(iTimeStep)+'.csv',  self.image, delimiter=",")
+            np.savetxt('../data/denoisedImage'+str(iTimeStep)+'.csv',  self.image, delimiter=",")
+            np.savetxt('../data/g'+str(iTimeStep)+'.csv',  self.g, delimiter=",")
+            np.savetxt('../data/RHS'+str(iTimeStep)+'.csv',  self.RHS, delimiter=",")
+            #a = input('').split(" ")[0]
         self.denoisedImage = noisyImage
 
     def solve(self):

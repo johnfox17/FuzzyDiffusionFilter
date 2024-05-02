@@ -8,12 +8,52 @@ lena = rgb2gray(lena);
 figure; imagesc(lena)
 colormap gray
 
-Dx = table2array(readtable("g.csv"));
-% idx = abs(Dx)~=0 & abs(Dx)<30;
-% Dx(idx) = 1;
-Dx = reshape(Dx, [512 512]).';
-figure; imagesc(Dx)
-colormap gray;
+denoisedImage0 = table2array(readtable("denoisedImage0.csv"));
+% denoisedImage0 = 255.*denoisedImage0/max(denoisedImage0(:));
+figure; imagesc(denoisedImage0)
+% colormap gray;
+colorbar
+figure; surf(denoisedImage0)
+
+% g0 = table2array(readtable("g0.csv"));
+% g0 = reshape(g0, [512 512]).';
+% figure; imagesc(g0)
+% colormap gray;
+% figure; surf(g0)
+
+
+% RHS0 = table2array(readtable("RHS0.csv"));
+% %RHS0 = reshape(RHS0, [512 512]).';
+% figure; imagesc(RHS0)
+% colormap gray;
+% figure; surf(RHS0)
+
+
+denoisedImage1 = table2array(readtable("denoisedImage51.csv"));
+% denoisedImage1 = 255.*denoisedImage1/max(denoisedImage1(:));
+% denoisedImage1(denoisedImage1<-255) = -255;
+%denoisedImage1 = reshape(denoisedImage1, [512 512]);
+figure; imagesc(denoisedImage1)
+% colormap gray;
+colorbar
+figure; surf(denoisedImage1)
+
+% g3 = table2array(readtable("g3.csv"));
+% g3 = reshape(g3, [512 512]).';
+% figure; imagesc(g3)
+% colormap gray;
+% figure; surf(g3)
+
+
+% RHS3 = table2array(readtable("RHS3.csv"));
+% %RHS7 = reshape(RHS7, [512 512]);
+% figure; imagesc(RHS3)
+% colormap gray;
+% figure; surf(RHS3)
+
+
+
+
 
 Dy = table2array(readtable("gY.csv"));
 % idx = abs(Dy)~=0 & abs(Dy)<15;
