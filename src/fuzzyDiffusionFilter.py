@@ -156,13 +156,13 @@ class fuzzyDiffusionFilter:
         for currentSimilarityMatrix in range((self.Nx-2)*(self.Ny-2)):
             localSmoothness.append((np.sum(self.similarityMatrices[currentSimilarityMatrix])-1)/(len(self.similarityMatrices[currentSimilarityMatrix])-1))
             generalAverage.append(np.average(self.similarityMatrices[currentSimilarityMatrix]))
-        self.localSmoothness = np.array(localSmoothness).reshape((self.Nx-2),(self.Ny-2))
+        self.localSmoothness = np.transpose(np.array(localSmoothness).reshape((self.Nx-2),(self.Ny-2)))
         self.generalAverage = np.array(generalAverage).reshape((self.Nx-2),(self.Ny-2))
 
     def thresholdLocalSmoothness(self):
         localSmoothness = np.array(self.localSmoothness)
-        localSmoothness[localSmoothness<0.35] = 0
-        localSmoothness[localSmoothness != 0] = 1
+        localSmoothness[localSmoothness<0.1] = 1
+        localSmoothness[localSmoothness != 1] = 0
         self.localSmoothness = localSmoothness
 
     def fixDynamicRange(self):
@@ -174,7 +174,7 @@ class fuzzyDiffusionFilter:
 
     def timeIntegrate(self):
         timeSteps = int(self.finalTime/self.dt)
-        timeSteps = 1000
+        timeSteps = 300
         for iTimeStep in range(timeSteps+1):
             print(iTimeStep)
             noisyImage = self.image
@@ -186,18 +186,16 @@ class fuzzyDiffusionFilter:
             self.createSimilarityMatrices()
             self.calculateLocalAndGeneralSmoothness()
             self.thresholdLocalSmoothness()
-            #print(np.shape(self.localSmoothness))
-            #a = input('').split(" ")[0]
             self.solveRHS() 
             self.denoisedImage = noisyImage + self.dt*self.lambd*self.RHS
             self.fixDynamicRange()
 
             #if iTimeStep%10 == 0:
                 #np.savetxt('..\\data\\denoisedImage'+str(iTimeStep)+'.csv',  self.image, delimiter=",")
-            np.savetxt('../data/denoisedImage'+str(iTimeStep)+'.csv',  self.image, delimiter=",")
-            np.savetxt('../data/g'+str(iTimeStep)+'.csv',  self.g, delimiter=",")
-            np.savetxt('../data/RHS'+str(iTimeStep)+'.csv',  self.RHS, delimiter=",")
-            #a = input('').split(" ")[0]
+            np.savetxt('../data/threshold_0_1/denoisedImage'+str(iTimeStep)+'.csv',  self.image, delimiter=",")
+            np.savetxt('../data/threshold_0_1/g'+str(iTimeStep)+'.csv',  self.g, delimiter=",")
+            np.savetxt('../data/threshold_0_1/localSmoothness'+str(iTimeStep)+'.csv',  self.localSmoothness, delimiter=",")
+            np.savetxt('../data/threshold_0_1/RHS'+str(iTimeStep)+'.csv',  self.RHS, delimiter=",")
         self.denoisedImage = noisyImage
 
     def solve(self):
