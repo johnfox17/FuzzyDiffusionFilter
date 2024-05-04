@@ -10,15 +10,15 @@ def main():
 
     if sys.platform.startswith('linux'):
         pathToLena = \
-            '../data/noisyLena.png'
-            # '../data/Lena.png'
-        pathToMembershipFunction = '../data/triangularMembershipFunction.csv'
+            '../data/simData/noisyLena.png'
+            # '../data/simData/Lena.png'
+        pathToMembershipFunction = '../data/simData/triangularMembershipFunction.csv'
 
     else:
         pathToLena = \
-                '..\\data\\Lena.png'
-                #'..\\data\\noisyLena.png'
-        pathToMembershipFunction = '..\\data\\triangularMembershipFunction.csv'
+                '..\\data\\simData\\Lena.png'
+                #'..\\data\\simData\\noisyLena.png'
+        pathToMembershipFunction = '..\\data\\simData\\triangularMembershipFunction.csv'
 
     image = cv2.imread(pathToLena)
     image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)

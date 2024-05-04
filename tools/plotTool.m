@@ -1,19 +1,19 @@
 clear all;
-% close all;
+close all;
 
-addpath('../data/threshold_0_1')
+addpath('../data/threshold_0_08')
 lena = imread('Lena.png');
 lena = rgb2gray(lena);
 
 figure; imagesc(lena)
 colormap gray
 
-% denoisedImage0 = table2array(readtable("denoisedImage0.csv"));
-% figure; imagesc(denoisedImage0)
-% title('denoisedImage0')
-% % colormap gray;
-% colorbar
-% figure; surf(denoisedImage0)
+denoisedImage0 = table2array(readtable("denoisedImage0.csv"));
+figure; imagesc(denoisedImage0)
+title('denoisedImage0')
+colormap gray;
+colorbar
+figure; surf(denoisedImage0)
 % 
 % g0 = table2array(readtable("g0.csv"));
 % g0 = reshape(g0, [512 512]).';
@@ -37,10 +37,13 @@ colormap gray
 % figure; surf(localSmoothness0)
 
 
-numInteration = "116";
+numInteration = "133";
 denoisedImage1 = table2array(readtable("denoisedImage"+numInteration+".csv"));
+% denoisedImage1(denoisedImage1>=210) = 210;
+% denoisedImage1(denoisedImage1<=-210) = -210;
+%denoisedImage1 = movmean(denoisedImage1, 5);
 figure; imagesc(denoisedImage1)
-% colormap gray;
+colormap gray;
 colorbar
 title('denoisedImage1')
 figure; surf(denoisedImage1)
