@@ -161,13 +161,15 @@ class fuzzyDiffusionFilter:
 
     def thresholdLocalSmoothness(self):
         localSmoothness = np.array(self.localSmoothness)
-        localSmoothness[localSmoothness<0.05] = 1
+        localSmoothness[localSmoothness<0.2] = 1
         localSmoothness[localSmoothness != 1] = 0
         self.localSmoothness = localSmoothness
 
-    def fixDynamicRange(self):
+    def checkSaturation(self):       
         denoisedImage = self.denoisedImage.flatten()
-        denoisedImage = 255*np.divide(denoisedImage,np.max(denoisedImage))
+        while np.max(np.absolute(denoisedImage))>256:
+            denoisedImage = np.divide(denoisedImage,2)
+        
         self.Nx = self.Nx - 2*int(self.horizon)
         self.Ny = self.Ny - 2*int(self.horizon)
         self.image = denoisedImage.reshape((self.Nx, self.Ny))
@@ -188,14 +190,14 @@ class fuzzyDiffusionFilter:
             self.thresholdLocalSmoothness()
             self.solveRHS() 
             self.denoisedImage = noisyImage + self.dt*self.lambd*self.RHS
-            self.fixDynamicRange()
+            self.checkSaturation()
 
             #if iTimeStep%10 == 0:
                 #np.savetxt('..\\data\\denoisedImage'+str(iTimeStep)+'.csv',  self.image, delimiter=",")
-            np.savetxt('../data/output/threshold_0_05/denoisedImage'+str(iTimeStep)+'.csv',  self.image, delimiter=",")
-            np.savetxt('../data/output/threshold_0_05/g'+str(iTimeStep)+'.csv',  self.g, delimiter=",")
-            np.savetxt('../data/output/threshold_0_05/localSmoothness'+str(iTimeStep)+'.csv',  self.localSmoothness, delimiter=",")
-            np.savetxt('../data/output/threshold_0_05/RHS'+str(iTimeStep)+'.csv',  self.RHS, delimiter=",")
+            np.savetxt('../data/output2/threshold_0_2/denoisedImage'+str(iTimeStep)+'.csv',  self.image, delimiter=",")
+            np.savetxt('../data/output2/threshold_0_2/g'+str(iTimeStep)+'.csv',  self.g, delimiter=",")
+            np.savetxt('../data/output2/threshold_0_2/localSmoothness'+str(iTimeStep)+'.csv',  self.localSmoothness, delimiter=",")
+            np.savetxt('../data/output2/threshold_0_2/RHS'+str(iTimeStep)+'.csv',  self.RHS, delimiter=",")
         self.denoisedImage = noisyImage
 
     def solve(self):
