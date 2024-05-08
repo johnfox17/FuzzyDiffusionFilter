@@ -11,7 +11,7 @@ Dn = 2**8-1
 FINALTIME = 100
 DELTAT = 0.01
 LAMBDA = 0.25
-
+THRESHOLD = 0.01
 GXMASK = np.array([[1,1,1],[0,0,0],[1,1,1]])
 GYMASK = np.array([[1,0,1],[1,0,1],[1,0,1]])
 

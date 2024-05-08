@@ -20,7 +20,8 @@ class fuzzyDiffusionFilter:
         self.lambd = constants.LAMBDA
         self.GxMask = constants.GXMASK
         self.GyMask = constants.GYMASK
-        self.gCenter = constants.GCENTER 
+        self.gCenter = constants.GCENTER
+        self.threshold = constants.THRESHOLD
 
     def createPDDOKernelMesh(self):
         indexing = 'xy'
@@ -161,7 +162,7 @@ class fuzzyDiffusionFilter:
 
     def thresholdLocalSmoothness(self):
         localSmoothness = np.array(self.localSmoothness)
-        localSmoothness[localSmoothness<0.2] = 1
+        localSmoothness[localSmoothness<self.threshold] = 1
         localSmoothness[localSmoothness != 1] = 0
         self.localSmoothness = localSmoothness
 
@@ -194,10 +195,10 @@ class fuzzyDiffusionFilter:
 
             #if iTimeStep%10 == 0:
                 #np.savetxt('..\\data\\denoisedImage'+str(iTimeStep)+'.csv',  self.image, delimiter=",")
-            np.savetxt('../data/output2/threshold_0_2/denoisedImage'+str(iTimeStep)+'.csv',  self.image, delimiter=",")
-            np.savetxt('../data/output2/threshold_0_2/g'+str(iTimeStep)+'.csv',  self.g, delimiter=",")
-            np.savetxt('../data/output2/threshold_0_2/localSmoothness'+str(iTimeStep)+'.csv',  self.localSmoothness, delimiter=",")
-            np.savetxt('../data/output2/threshold_0_2/RHS'+str(iTimeStep)+'.csv',  self.RHS, delimiter=",")
+            np.savetxt('../data/output/threshold_'+str(self.threshold)+'/denoisedImage'+str(iTimeStep)+'.csv',  self.image, delimiter=",")
+            np.savetxt('../data/output/threshold_'+str(self.threshold)+'/g'+str(iTimeStep)+'.csv',  self.g, delimiter=",")
+            np.savetxt('../data/output/threshold_'+str(self.threshold)+'/localSmoothness'+str(iTimeStep)+'.csv',  self.localSmoothness, delimiter=",")
+            np.savetxt('../data/output/threshold_'+str(self.threshold)+'/RHS'+str(iTimeStep)+'.csv',  self.RHS, delimiter=",")
         self.denoisedImage = noisyImage
 
     def solve(self):
