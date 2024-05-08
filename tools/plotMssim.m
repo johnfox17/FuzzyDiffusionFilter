@@ -1,6 +1,24 @@
 clear all;
 close all;
 
+
+mssim_0_05_1 = table2array(readtable("../data/output/threshold_0_1/mssim.csv"));
+mssim_0_05_2 = table2array(readtable("../data/output2/threshold_0_1/mssim.csv"));
+figure; 
+plot(mssim_0_05_1, '-o')
+hold on;
+plot(mssim_0_05_2, '-*')
+
+
+
+
+
+
+
+
+
+
+
 mssim_0_05 = table2array(readtable("../data/threshold_0_05/mssim.csv"));
 mssim_0_08 = table2array(readtable("../data/threshold_0_08/mssim.csv"));
 mssim_0_09 = table2array(readtable("../data/threshold_0_09/mssim.csv"));

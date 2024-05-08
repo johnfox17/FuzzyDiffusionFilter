@@ -1,7 +1,7 @@
 clear all;
 close all;
 
-addpath('../data/threshold_0_08')
+addpath('../data/output2/threshold_0_2')
 lena = imread('Lena.png');
 lena = rgb2gray(lena);
 
@@ -37,7 +37,7 @@ figure; surf(denoisedImage0)
 % figure; surf(localSmoothness0)
 
 
-numInteration = "133";
+numInteration = "15";
 denoisedImage1 = table2array(readtable("denoisedImage"+numInteration+".csv"));
 % denoisedImage1(denoisedImage1>=210) = 210;
 % denoisedImage1(denoisedImage1<=-210) = -210;
