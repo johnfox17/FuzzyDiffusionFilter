@@ -3,7 +3,7 @@ import numpy as np
 from sklearn.neighbors import KDTree
 
 class fuzzyDiffusionFilter:
-    def __init__(self, image, pathToMembershipFunction):
+    def __init__(self, image, pathToMembershipFunction, threshold):
         self.image = image
         self.pathToMembershipFunction = pathToMembershipFunction 
         self.l1 = constants.L1
@@ -21,7 +21,7 @@ class fuzzyDiffusionFilter:
         self.GxMask = constants.GXMASK
         self.GyMask = constants.GYMASK
         self.gCenter = constants.GCENTER
-        self.threshold = constants.THRESHOLD
+        self.threshold = threshold
 
     def createPDDOKernelMesh(self):
         indexing = 'xy'
@@ -67,8 +67,8 @@ class fuzzyDiffusionFilter:
                 currentPixelMembership = []
                 currentPixelMembership.append(self.image[iCol,iRow])
                 membershipIndex = int(self.image[iCol,iRow])
-                if membershipIndex > 255:
-                    membershipIndex = 255
+                #if membershipIndex > 255:
+                #    membershipIndex = 255
                 currentPixelMembership.append(list(self.membershipFunction[membershipIndex])[0])
                 currentPixelMembership.append(list(self.membershipFunction[membershipIndex])[1])
                 #print(currentPixelMembership)
@@ -104,9 +104,9 @@ class fuzzyDiffusionFilter:
                 Dx = np.multiply(self.GxMask,self.Dx[iRow-int(self.horizon):iRow+int(self.horizon)+1,iCol-int(self.horizon):iCol+int(self.horizon)+1]).astype(int)
                 Dy = np.multiply(self.GyMask,self.Dy[iRow-int(self.horizon):iRow+int(self.horizon)+1,iCol-int(self.horizon):iCol+int(self.horizon)+1]).astype(int)
                 Lx = np.multiply(self.GxMask,self.image[iRow-int(self.horizon):iRow+int(self.horizon)+1,iCol-int(self.horizon):iCol+int(self.horizon)+1]).astype(int)
-                Lx[Lx>255] = 255
+                #Lx[Lx>255] = 255
                 Ly = np.multiply(self.GyMask,self.image[iRow-int(self.horizon):iRow+int(self.horizon)+1,iCol-int(self.horizon):iCol+int(self.horizon)+1]).astype(int)
-                Ly[Ly>255] = 255
+                #Ly[Ly>255] = 255
 
                 muPremX = self.membershipFunction[int(Lx[2][2])][1]+self.membershipFunction[int(Lx[2][1])][1]+self.membershipFunction[int(Lx[2][0])][1]+self.membershipFunction[int(Lx[0][2])][1]+self.membershipFunction[int(Lx[0][1])][1]+self.membershipFunction[int(Lx[0][0])][1]
                 muPremY = self.membershipFunction[Lx[2][2]][1]+self.membershipFunction[Lx[1][2]][1]+self.membershipFunction[Lx[0][2]][1]+self.membershipFunction[Lx[2][0]][1]+self.membershipFunction[Lx[1][0]][1]+self.membershipFunction[Lx[0][0]][1]
@@ -140,17 +140,13 @@ class fuzzyDiffusionFilter:
     def solveRHS(self):
         g = np.pad(self.g.reshape((self.Nx-2,self.Ny-2)) ,int(self.horizon),mode='symmetric')
         localSmoothness = np.pad(self.localSmoothness ,int(self.horizon),mode='symmetric')
-        #iPixel = 0
         RHS = []
         for iCol in range(1,self.Nx-1):
             for iRow in range(1,self.Ny-1):
-                #RHS.append(np.sum(np.multiply(self.similarityMatrices[iPixel,:,:],np.multiply(self.GxMask,g[iRow-int(self.horizon):iRow+int(self.horizon)+1,iCol-int(self.horizon):iCol+int(self.horizon)+1]))))           
                 RHS.append(np.sum(np.multiply(np.multiply(self.GxMask, localSmoothness[iRow-int(self.horizon):iRow+int(self.horizon)+1,iCol-int(self.horizon):iCol+int(self.horizon)+1]),np.multiply(self.GxMask,g[iRow-int(self.horizon):iRow+int(self.horizon)+1,iCol-int(self.horizon):iCol+int(self.horizon)+1]))))
-                #iPixel = iPixel + 1
         self.RHS = np.transpose(np.array(RHS).reshape((self.Nx-2,self.Ny-2)))
 
     
-
     def calculateLocalAndGeneralSmoothness(self):
         localSmoothness = []
         generalAverage = []
@@ -193,8 +189,6 @@ class fuzzyDiffusionFilter:
             self.denoisedImage = noisyImage + self.dt*self.lambd*self.RHS
             self.checkSaturation()
 
-            #if iTimeStep%10 == 0:
-                #np.savetxt('..\\data\\denoisedImage'+str(iTimeStep)+'.csv',  self.image, delimiter=",")
             np.savetxt('../data/output/threshold_'+str(self.threshold)+'/denoisedImage'+str(iTimeStep)+'.csv',  self.image, delimiter=",")
             np.savetxt('../data/output/threshold_'+str(self.threshold)+'/g'+str(iTimeStep)+'.csv',  self.g, delimiter=",")
             np.savetxt('../data/output/threshold_'+str(self.threshold)+'/localSmoothness'+str(iTimeStep)+'.csv',  self.localSmoothness, delimiter=",")

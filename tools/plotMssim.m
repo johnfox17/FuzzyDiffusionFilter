@@ -1,6 +1,33 @@
 clear all;
 close all;
 
+thresholds = ["threshold_0.01/","threshold_0.02/","threshold_0.03/","threshold_0.05/","threshold_0.08/","threshold_0.09/",...
+    "threshold_0.1/","threshold_0.15/","threshold_0.2/","threshold_0.25/","threshold_0.3/","threshold_0.35/"];
+
+figure; 
+hold on;
+for iThreshold = 1:length(thresholds)
+    pathToMetrics = '../data/output/' + thresholds(iThreshold);
+    mssim = table2array(readtable(pathToMetrics+"mssim.csv"));
+    plot(mssim)
+end
+
+legend(["threshold 0.01","threshold 0.02","threshold 0.03","threshold 0.05","threshold 0.08","threshold 0.09",...
+    "threshold 0.1","threshold 0.15","threshold 0.2","threshold 0.25","threshold 0.3","threshold 0.35"])
+
+xlabel('Time Step')
+ylabel('MSSIM')
+
+
+
+
+
+
+
+
+
+
+
 
 mssim_0_05_1 = table2array(readtable("../data/output/threshold_0_1/mssim.csv"));
 mssim_0_05_2 = table2array(readtable("../data/output2/threshold_0_1/mssim.csv"));

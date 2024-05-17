@@ -3,28 +3,29 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 import fuzzyDiffusionFilter
-
+import constants
 
 def main():
     
 
-    if sys.platform.startswith('linux'):
-        pathToLena = \
-            '../data/simData/noisyLena.png'
-            # '../data/simData/Lena.png'
-        pathToMembershipFunction = '../data/simData/triangularMembershipFunction.csv'
+    for iThreshold in constants.THRESHOLDS: 
+        if sys.platform.startswith('linux'):
+            pathToLena = \
+                '../data/simData/noisyLena.png'
+                # '../data/simData/Lena.png'
+            pathToMembershipFunction = '../data/simData/triangularMembershipFunction.csv'
 
-    else:
-        pathToLena = \
+        else:
+            pathToLena = \
                 '..\\data\\simData\\Lena.png'
                 #'..\\data\\simData\\noisyLena.png'
-        pathToMembershipFunction = '..\\data\\simData\\triangularMembershipFunction.csv'
+            pathToMembershipFunction = '..\\data\\simData\\triangularMembershipFunction.csv'
 
-    image = cv2.imread(pathToLena)
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        image = cv2.imread(pathToLena)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     
-    fuzzyFilter = fuzzyDiffusionFilter.fuzzyDiffusionFilter(image,pathToMembershipFunction)
-    fuzzyFilter.solve()
+        fuzzyFilter = fuzzyDiffusionFilter.fuzzyDiffusionFilter(image,pathToMembershipFunction,iThreshold)
+        fuzzyFilter.solve()
 
 
 
